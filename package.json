@@ -1,43 +1,35 @@
 {
-  "name": "tusky-testnet-bot",
+  "name": "tusky-bot",
   "version": "1.0.0",
-  "description": "Automated bot for Tusky testnet file uploads with multi-account support",
+  "description": "Tusky upload automation bot",
   "main": "tusky.js",
   "scripts": {
     "start": "node tusky.js",
-    "dev": "nodemon tusky.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "nodemon tusky.js"
   },
   "keywords": [
     "tusky",
-    "testnet",
-    "bot",
-    "automation",
+    "airdrop",
     "sui",
-    "blockchain",
-    "upload"
+    "automation"
   ],
-  "author": "Airdrop Insiders",
+  "author": "CryptoTravels by Dmytro",
   "license": "MIT",
-  "dependencies": {
-    "@mysten/sui.js": "^0.50.0",
-    "axios": "^1.6.0",
-    "dotenv": "^16.3.1",
-    "https-proxy-agent": "^7.0.2",
-    "user-agents": "^1.1.595"
-  },
-  "devDependencies": {
-    "nodemon": "^3.0.1"
-  },
-  "engines": {
-    "node": ">=16.0.0"
-  },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/airdropinsiders/tusky-testnet-bot.git"
+    "url": "https://github.com/DemianUA/Tusky"
   },
   "bugs": {
-    "url": "https://github.com/airdropinsiders/tusky-testnet-bot/issues"
+    "url": "https://github.com/DemianUA/Tusky/issues"
   },
-  "homepage": "https://github.com/airdropinsiders/tusky-testnet-bot#readme"
+  "homepage": "https://github.com/DemianUA/Tusky#readme",
+  "dependencies": {
+    "@mysten/sui.js": "^0.53.0",
+    "axios": "^1.6.8",
+    "dotenv": "^16.4.5",
+    "https-proxy-agent": "^7.0.4"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  }
 }
