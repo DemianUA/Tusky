@@ -1,0 +1,43 @@
+{
+  "name": "tusky-testnet-bot",
+  "version": "1.0.0",
+  "description": "Automated bot for Tusky testnet file uploads with multi-account support",
+  "main": "tusky.js",
+  "scripts": {
+    "start": "node tusky.js",
+    "dev": "nodemon tusky.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "tusky",
+    "testnet",
+    "bot",
+    "automation",
+    "sui",
+    "blockchain",
+    "upload"
+  ],
+  "author": "Airdrop Insiders",
+  "license": "MIT",
+  "dependencies": {
+    "@mysten/sui.js": "^0.50.0",
+    "axios": "^1.6.0",
+    "dotenv": "^16.3.1",
+    "https-proxy-agent": "^7.0.2",
+    "user-agents": "^1.1.595"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/airdropinsiders/tusky-testnet-bot.git"
+  },
+  "bugs": {
+    "url": "https://github.com/airdropinsiders/tusky-testnet-bot/issues"
+  },
+  "homepage": "https://github.com/airdropinsiders/tusky-testnet-bot#readme"
+}
