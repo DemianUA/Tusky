@@ -179,22 +179,7 @@ if (!tokenData.proxy && proxyUrl) {
     const userAgent = tokenData.userAgent;
     const fingerprint = tokenData.fingerprint;
 
-    // 3. Перевіряємо, чи вже є збережений idToken (JWT) для цієї адреси
-    if (tokenData.idToken) {
-      logger.success(`Using cached token for address ${address}`);
-      // Повертаємо відразу, уникаючи повторного логіну
-      account.address = address;
-      account.userAgent = userAgent;
-      account.fingerprint = fingerprint;
-      return {
-        idToken: tokenData.idToken,
-        address,
-        userAgent,
-        fingerprint,
-        accountIndex: account.index
-      };
-    }
-
+  
     // 4. Виконуємо процес логіну через API Tusky
     // 4.1. Запит на створення челенджу (nonce)
     const challengeResponse = await axios.post(
@@ -227,12 +212,13 @@ const verifyResponse = await axios.post(
     tokenData.idToken = idToken;
     const allTokens = loadTokens();
     allTokens[address.toLowerCase()] = {
-      address: address.toLowerCase(),
-      idToken,
-      userAgent,
-      fingerprint,
-      proxy: tokenData.proxy
-    };
+  ...tokenData,
+  address: address.toLowerCase(),
+  idToken,
+  userAgent,
+  fingerprint,
+  proxy: tokenData.proxy
+};
     saveTokens(allTokens);
     logger.info(`Token + fingerprint saved for ${address}`);
 
@@ -267,23 +253,25 @@ const fetchStorageInfo = async (idToken, axiosInstance, account) => {
     logger.info(`Owner: ${owner}`);
     return { storageAvailable, storageTotal, photos, owner };
   } catch (error) {
-    if (error.response && error.response.status === 401) {
-      logger.warn(`Token expired for account ${account.index}. Attempting to refresh token...`);
-      const newToken = await loginWallet({
-        privateKey: account.privateKey,
-        mnemonic: account.mnemonic,
-        index: account.index,
-        type: account.type,
-      });
-      if (newToken) {
-        account.idToken = newToken.idToken;
-        logger.success(`Token refreshed for account ${account.index}`);
-        return await fetchStorageInfo(account.idToken, axiosInstance, account);
-      } else {
-        logger.error(`Failed to refresh token for account ${account.index}`);
-        throw new Error('Token refresh failed');
-      }
-    }
+  if (error.response && error.response.status === 401) {
+  logger.warn(`Token expired for account ${account.index}. Attempting to refresh token...`);
+  const newToken = await loginWallet({
+    privateKey: account.privateKey,
+    mnemonic: account.mnemonic,
+    index: account.index,
+    type: account.type,
+  });
+  if (newToken) {
+    // ✅ Оновлюємо весь об’єкт account
+    Object.assign(account, newToken);
+    logger.success(`Token refreshed for account ${account.index}`);
+    return await fetchStorageInfo(account.idToken, axiosInstance, account);
+  } else {
+    logger.error(`Failed to refresh token for account ${account.index}`);
+    throw new Error('Token refresh failed');
+  }
+}
+
     logger.error(`Failed to fetch storage info for account ${account.index}: ${error.message}`);
     if (error.response) {
       logger.error(`API response: ${JSON.stringify(error.response.data)}`);
@@ -293,8 +281,8 @@ const fetchStorageInfo = async (idToken, axiosInstance, account) => {
 };
 
 const generateRandomVaultName = () => {
-  const adjectives = ['Cosmic', 'Stellar', 'Lunar', 'Solar', 'Nebula', 'Galactic', 'Orbit', 'Astro'];
-  const nouns = ['Vault', 'Storage', 'Chamber', 'Node', 'Hub', 'Cluster', 'Zone', 'Realm'];
+  const adjectives = ['Girls', 'Personal', 'Memories', 'Birthday', 'Summer', 'Travel', 'Moments', 'Weekend'];
+  const nouns = ['Throwbacks', 'Family', 'Snapshots', 'Behind', 'Private', 'Love', 'Unfiltered', 'Life'];
   const randomNum = Math.floor(Math.random() * 1000);
   return `${adjectives[Math.floor(Math.random() * adjectives.length)]}-${nouns[Math.floor(Math.random() * nouns.length)]}-${randomNum}`;
 };
@@ -472,14 +460,35 @@ const tokenData = getOrCreateTokenForAddress(account.address);
 
     const axiosInstance = createAxiosInstance(tokenData.proxy || proxyUrl);
 
-    await fetchStorageInfo(idToken, axiosInstance, account);
+    await fetchStorageInfo(null, axiosInstance, account);
 
-    const vault = await createPublicVault(idToken, axiosInstance, account);
-    logger.info(`Using newly created vault: "${vault.name}" (${vault.id})`);
+
+let vault;
+
+if (tokenData.vaults && tokenData.vaults.length > 0 && Math.random() < 0.5) {
+  const vaultId = tokenData.vaults[Math.floor(Math.random() * tokenData.vaults.length)];
+  vault = {
+    id: vaultId,
+    name: `Existing Vault ${vaultId.slice(0, 6)}`,
+    rootFolderId: vaultId
+  };
+  logger.info(`🎯 Using existing vault ID: ${vaultId}`);
+} else {
+  vault = await createPublicVault(null, axiosInstance, account);
+
+  // Зберігаємо новий Vault ID
+  tokenData.vaults = tokenData.vaults || [];
+  tokenData.vaults.push(vault.id);
+  const allTokens = loadTokens();
+  allTokens[account.address.toLowerCase()] = tokenData;
+  saveTokens(allTokens);
+
+  logger.info(`💾 Saved new vault ID: ${vault.id}`);
+}
 
     for (let i = 0; i < numberOfUploads; i++) {
       logger.step(`Upload ${i + 1} of ${numberOfUploads} to vault "${vault.name}"`);
-      await uploadFile(idToken, vault, axiosInstance, account);
+      await uploadFile(null, vault, axiosInstance, account);
       logger.success(`Upload ${i + 1} completed for account ${account.index}`);
 
       if (i < numberOfUploads - 1) {
